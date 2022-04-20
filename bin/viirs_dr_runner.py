@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 2013 - 2020 Pytroll
+# Copyright (c) 2013 - 2022 Pytroll
 
 # Author(s):
 
@@ -322,7 +322,7 @@ def publish_sdr(publisher, result_files, mda, **kwargs):
         LOG.warning("Couldn't remove UID from message")
 
     if 'orbit' in kwargs:
-        to_send["orig_orbit_number"] = to_send["orbit_number"]
+        to_send["orig_orbit_number"] = to_send.get("orbit_number")
         to_send["orbit_number"] = kwargs['orbit']
 
     to_send["dataset"] = []
