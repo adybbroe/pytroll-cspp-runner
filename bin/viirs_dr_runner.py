@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 2013 - 2022 Pytroll
+# Copyright (c) 2013 - 2023 Pytroll
 
 # Author(s):
 
@@ -313,11 +313,11 @@ def publish_sdr(publisher, result_files, mda, **kwargs):
     to_send = mda.copy()
     # Delete the RDR uri and uid from the message:
     try:
-        del(to_send['uri'])
+        del (to_send['uri'])
     except KeyError:
         LOG.warning("Couldn't remove URI from message")
     try:
-        del(to_send['uid'])
+        del (to_send['uid'])
     except KeyError:
         LOG.warning("Couldn't remove UID from message")
 
@@ -585,19 +585,27 @@ def npp_rolling_runner():
     LOG.info("*** Start the Suomi-NPP/JPSS SDR runner:")
     LOG.info("THR_LUT_FILES_AGE_DAYS = " + str(THR_LUT_FILES_AGE_DAYS))
 
+    mirror_jpss_ancillary = OPTIONS.get('mirror_jpss_ancillary')
+    mirror_jpss_luts = OPTIONS.get('mirror_jpss_luts')
+
     fresh = check_lut_files(THR_LUT_FILES_AGE_DAYS)
     if fresh:
         LOG.info("Files in the LUT dir are fresh...")
         LOG.info("...or download has been attempted recently! " +
                  "No url downloading....")
     else:
-        LOG.warning("Files in the LUT dir are non existent or old. " +
-                    "Start url fetch...")
-        update_lut_files()
+        if not mirror_jpss_luts:
+            LOG.debug("No LUT update script provided. No LUT updating will be attempted.")
+        else:
+            LOG.warning("Files in the LUT dir are non existent or old. " +
+                        "Start url fetch...")
+            update_lut_files()
 
-    LOG.info("Dynamic ancillary data will be updated. " +
-             "Start url fetch...")
-    update_ancillary_files()
+    if not mirror_jpss_ancillary:
+        LOG.debug("No ancillary data update script provided. CSPP ancillary data will not be updated.")
+    else:
+        LOG.info("Dynamic ancillary data will be updated. Start url fetch...")
+        update_ancillary_files()
 
     ncpus_available = cpu_count()
     LOG.info("Number of CPUs available = " + str(ncpus_available))
@@ -640,22 +648,25 @@ def npp_rolling_runner():
 
                 make_okay_files(viirs_proc.sdr_home, subd)
 
-                LOG.info("Now that SDR processing has completed, " +
-                         "check for new LUT files...")
+                LOG.info("Now that SDR processing has completed, check for new LUT files...")
                 fresh = check_lut_files(THR_LUT_FILES_AGE_DAYS)
                 if fresh:
                     LOG.info("Files in the LUT dir are fresh...")
                     LOG.info("...or download has been attempted recently! " +
                              "No url downloading....")
                 else:
-                    LOG.warning("Files in the LUT dir are " +
-                                "non existent or old. " +
-                                "Start url fetch...")
-                    update_lut_files()
+                    if not mirror_jpss_luts:
+                        LOG.debug("No LUT update script provided. No LUT updating will be attempted.")
+                    else:
+                        LOG.warning("Files in the LUT dir are non existent or old. " +
+                                    "Start url fetch...")
+                        update_lut_files()
 
-                LOG.info("Dynamic ancillary data will be updated. " +
-                         "Start url fetch...")
-                update_ancillary_files()
+                if not mirror_jpss_ancillary:
+                    LOG.debug("No ancillary data update script provided. CSPP ancillary data will not be updated.")
+                else:
+                    LOG.info("Dynamic ancillary data will be updated. Start url fetch...")
+                    update_ancillary_files()
 
     return
 
