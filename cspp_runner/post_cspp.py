@@ -12,8 +12,9 @@ LOG = logging.getLogger(__name__)
 
 TLE_SATNAME = {'npp': 'SUOMI NPP',
                'j01': 'NOAA-20',
+               'j02': 'NOAA-21',
                'noaa20': 'NOAA-20',
-               'noaa21': 'NOAA-20'
+               'noaa21': 'NOAA-21'
                }
 
 PLATFORM_NAME = {'Suomi-NPP': 'npp',
