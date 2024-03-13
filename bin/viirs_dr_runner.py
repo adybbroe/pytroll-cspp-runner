@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 2013 - 2023 Pytroll
+# Copyright (c) 2013 - 2024 Pytroll
 
 # Author(s):
 
@@ -21,10 +21,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Level-1 processing for VIIRS Suomi NPP Direct Readout data. Using the CSPP
-level-1 processor from the SSEC, Wisconsin, based on the ADL from the NASA DRL.
-Listen for pytroll messages from Nimbus (NPP file dispatch) and trigger
-processing on direct readout RDR data (granules or full swaths)
+"""Level-1 processing for VIIRS Direct Readout data.
+
+It is using the CSPP level-1 processor from the SSEC, Wisconsin, based on the ADL
+from the NASA DRL. Listen for pytroll messages from Nimbus (NPP file dispatch)
+and trigger processing on direct readout RDR data (granules or full swaths)
+
 """
 
 
@@ -36,9 +38,9 @@ import netifaces
 from glob import glob
 from datetime import datetime, timedelta
 try:
-    from urllib.parse import urlunsplit, urlparse
+    from urllib.parse import urlparse
 except ImportError:
-    from urlparse import urlunsplit, urlparse
+    from urlparse import urlparse
 
 import posttroll.subscriber
 from posttroll.publisher import Publish
@@ -79,7 +81,9 @@ LOG = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 def check_lut_files(thr_days=14):
-    """Check if the LUT files under ${path_to_cspp_cersion}/anc/cache/luts are
+    """Check that LUT files are available and fresh.
+
+    Check if the LUT files under ${path_to_cspp_cersion}/anc/cache/luts are
     available and check if they are fresh. Return True if fresh/new files
     exists, otherwise False.
     It is files like these (with incredible user-unfriendly) names:
@@ -141,8 +145,7 @@ def check_lut_files(thr_days=14):
 
 
 def update_lut_files():
-    """
-    Function to update the ancillary LUT files
+    """Update the ancillary LUT files.
 
     These files need to be updated at least once every week, in order to
     achieve the best possible SDR processing.
@@ -196,8 +199,7 @@ def update_lut_files():
 
 
 def update_ancillary_files():
-    """
-    Function to update the dynamic ancillary data.
+    """Update the dynamic ancillary data.
 
     These data files encompass Two Line Element (TLE) and Polar Wander (PW)
     files, and should preferably be updated daily. This is done automatically
@@ -256,7 +258,7 @@ def update_ancillary_files():
 
 
 def run_cspp(*viirs_rdr_files):
-    """Run CSPP on VIIRS RDR files"""
+    """Run CSPP on VIIRS RDR files."""
     from subprocess import Popen, PIPE
     import time
     import tempfile
@@ -304,8 +306,7 @@ def run_cspp(*viirs_rdr_files):
 
 
 def publish_sdr(publisher, result_files, mda, **kwargs):
-    """Publish the messages that SDR files are ready
-    """
+    """Publish the messages that SDR files are ready."""
     if not result_files:
         return
 
@@ -329,9 +330,7 @@ def publish_sdr(publisher, result_files, mda, **kwargs):
     for result_file in result_files:
         filename = os.path.basename(result_file)
         to_send[
-            'dataset'].append({'uri': urlunsplit(('ssh', socket.gethostname(),
-                                                  result_file, '', '')),
-                               'uid': filename})
+            'dataset'].append({'uri': result_file, 'uid': filename})
     to_send['format'] = 'SDR'
     to_send['type'] = 'HDF5'
     to_send['data_processing_level'] = '1B'
@@ -354,8 +353,7 @@ def publish_sdr(publisher, result_files, mda, **kwargs):
 
 
 def spawn_cspp(current_granule, *glist, **kwargs):
-    """Spawn a CSPP run on the set of RDR files given"""
-
+    """Spawn a CSPP run on the set of RDR files given."""
     start_time = kwargs.get('start_time')
     platform_name = kwargs.get('platform_name')
 
@@ -393,6 +391,7 @@ def spawn_cspp(current_granule, *glist, **kwargs):
 
 
 def get_local_ips():
+    """Get the local IP adresses."""
     inet_addrs = [netifaces.ifaddresses(iface).get(netifaces.AF_INET)
                   for iface in netifaces.interfaces()]
     ips = []
@@ -404,13 +403,10 @@ def get_local_ips():
 
 
 class ViirsSdrProcessor(object):
-
-    """
-    Container for the VIIRS SDR processing based on CSPP
-
-    """
+    """Container for the VIIRS SDR processing based on CSPP."""
 
     def __init__(self, ncpus):
+        """Initialise the VIIRS SDR processor."""
         from multiprocessing.pool import ThreadPool
         self.pool = ThreadPool(ncpus)
         self.ncpus = ncpus
@@ -426,7 +422,7 @@ class ViirsSdrProcessor(object):
         self.message_data = None
 
     def initialise(self):
-        """Initialise the processor"""
+        """Initialise the processor."""
         self.fullswath = False
         self.cspp_results = []
         self.glist = []
@@ -434,11 +430,11 @@ class ViirsSdrProcessor(object):
         self.result_files = []
 
     def pack_sdr_files(self, subd):
+        """Pack the SDR files."""
         return pack_sdr_files(self.result_files, self.sdr_home, subd)
 
     def run(self, msg):
-        """Start the VIIRS SDR processing using CSPP on one rdr granule"""
-
+        """Start the VIIRS SDR processing using CSPP on one rdr granule."""
         if msg:
             LOG.debug("Received message: " + str(msg))
 
@@ -579,7 +575,10 @@ class ViirsSdrProcessor(object):
 
 
 def npp_rolling_runner():
-    """The NPP/VIIRS runner. Listens and triggers processing on RDR granules."""
+    """NPP/VIIRS runner.
+
+    It listens and triggers processing on RDR granules.
+    """
     from multiprocessing import cpu_count
 
     LOG.info("*** Start the Suomi-NPP/JPSS SDR runner:")
