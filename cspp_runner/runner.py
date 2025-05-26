@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013 - 2023 Pytroll Developers
+# Copyright (c) 2013 - 2023, 2025 Pytroll Developers
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,12 +14,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
 """Wrapper for SDR of VIIRS Direct Readout data.
 
 Using the CSPP level-1 processor from the SSEC, Wisconsin, based on the ADL
 from the NASA DRL.  Listen for pytroll messages from Nimbus (NPP file dispatch)
 and trigger processing on direct readout RDR data (granules or full swaths).
-
 """
 
 
@@ -37,6 +37,7 @@ import time
 import yaml
 from glob import glob
 from datetime import datetime, timedelta
+
 from multiprocessing.pool import ThreadPool
 from urllib.parse import urlunsplit, urlparse
 
@@ -73,6 +74,7 @@ LOG = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
+
 def check_lut_files(thr_days, url_download_trial_frequency_hours,
                     lut_update_stampfile_prefix, lut_dir):
     """Check if LUT files are present and fresh.
@@ -308,7 +310,7 @@ def publish_sdr(publisher, result_files, mda, site, mode,
         LOG.warning("Couldn't remove UID from message")
 
     if 'orbit' in kwargs:
-        to_send["orig_orbit_number"] = to_send["orbit_number"]
+        to_send["orig_orbit_number"] = to_send.get("orbit_number")
         to_send["orbit_number"] = kwargs['orbit']
 
     to_send["dataset"] = []
@@ -323,6 +325,7 @@ def publish_sdr(publisher, result_files, mda, site, mode,
         (start_time, end_time) = get_sdr_times(filename)
         start_times.add(start_time)
         end_times.add(end_time)
+
     to_send['format'] = 'SDR'
     to_send['type'] = 'HDF5'
     to_send['data_processing_level'] = '1B'
@@ -603,6 +606,7 @@ def npp_rolling_runner(
     fresh = check_lut_files(
         thr_lut_files_age_days, url_download_trial_frequency_hours,
         lut_update_stampfile_prefix, lut_dir)
+
     if fresh:
         LOG.info("Files in the LUT dir are fresh...")
         LOG.info("...or download has been attempted recently! " +
@@ -613,6 +617,7 @@ def npp_rolling_runner(
         else:
             LOG.warning("Files in the LUT dir are non existent or old. " +
                         "Start url fetch...")
+
             update_lut_files(url_jpss_remote_lut_dir,
                              lut_update_stampfile_prefix, mirror_jpss_luts)
 
@@ -620,6 +625,7 @@ def npp_rolling_runner(
         LOG.debug("No ancillary data update script provided. CSPP ancillary data will not be updated.")
     else:
         LOG.info("Dynamic ancillary data will be updated. Start url fetch...")
+
         update_ancillary_files(url_jpss_remote_anc_dir,
                                anc_update_stampfile_prefix, mirror_jpss_ancillary)
 
@@ -682,6 +688,7 @@ def npp_rolling_runner(
                 fresh = check_lut_files(
                     thr_lut_files_age_days, url_download_trial_frequency_hours,
                     lut_update_stampfile_prefix, lut_dir)
+
                 if fresh:
                     LOG.info("Files in the LUT dir are fresh...")
                     LOG.info("...or download has been attempted recently! " +
@@ -692,6 +699,7 @@ def npp_rolling_runner(
                     else:
                         LOG.warning("Files in the LUT dir are non existent or old. " +
                                     "Start url fetch...")
+
                         update_lut_files(
                             url_jpss_remote_lut_dir,
                             lut_update_stampfile_prefix, mirror_jpss_luts)
