@@ -163,7 +163,8 @@ def update_files(url_jpss_remote_dir, update_stampfile_prefix, mirror_jpss,
     the JPSS script in a separat shell.
 
     """
-    _check_environment("CSPP_WORKDIR")
+    check_environment("CSPP_WORKDIR")
+
     cspp_workdir = os.environ.get("CSPP_WORKDIR", '')
     pathlib.Path(cspp_workdir).mkdir(parents=True, exist_ok=True)
     my_env = os.environ.copy()
@@ -178,9 +179,9 @@ def update_files(url_jpss_remote_dir, update_stampfile_prefix, mirror_jpss,
         cwd=cspp_workdir,
         stderr=subprocess.PIPE, stdout=subprocess.PIPE)
 
-    while (line:=proc.stdout.readline()):
+    while (line := proc.stdout.readline()):
         LOG.info(line.decode("utf-8").strip('\n'))
-    while (line:=proc.stderr.readline()):
+    while (line := proc.stderr.readline()):
         LOG.error(line.decode("utf-8").strip('\n'))
 
     try:

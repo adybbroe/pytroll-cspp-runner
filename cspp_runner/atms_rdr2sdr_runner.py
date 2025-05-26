@@ -118,6 +118,10 @@ class AtmsSdrRunner(Thread):
 
                 sdr_filepaths = get_filepaths(wrkdir, msg.data, self.sdr_file_patterns)
                 logger.debug("Files: %s", str(sdr_filepaths))
+                if len(sdr_filepaths) == 0:
+                    logger.warning("No ATMS files - cspp processing failed! " +
+                                   "No files to move. Continue.")
+                    continue
 
                 dest_sdr_files = move_files_to_destination(sdr_filepaths,
                                                            self.sdr_file_patterns, self._sdr_home)
@@ -272,6 +276,7 @@ def get_filepaths(directory, msg_data, file_patterns):
 
         glbstr = globify(pattern, mda)
         logger.debug("Glob-string = %s", str(glbstr))
+        logger.debug("Directory = %s", str(directory))
         flist = glob(os.path.join(directory, glbstr))
         files = files + flist
 
