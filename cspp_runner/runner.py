@@ -440,6 +440,8 @@ class ViirsSdrProcessor:
             del self.glist[0]
             keeper = self.glist[1]
             LOG.info("Start CSPP: RDR files = " + str(self.glist))
+            print(str(self.glist))
+
             self.cspp_results.append(
                 self.pool.apply_async(
                     spawn_cspp,
@@ -647,6 +649,11 @@ def npp_rolling_runner(
             while True:
                 viirs_proc.initialise()
                 for msg in subscr.recv(timeout=300):
+                    # print(str(msg.data))
+                    # print("")
+                    # print(str(viirs_sdr_call))
+                    # print(str(viirs_sdr_options))
+                    # print(str(granule_time_tolerance))
                     status = viirs_proc.run(
                         msg, viirs_sdr_call, viirs_sdr_options,
                         granule_time_tolerance)
