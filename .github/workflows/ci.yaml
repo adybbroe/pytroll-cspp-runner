@@ -1,6 +1,8 @@
 name: CI
 
-on: [push, pull_request]
+on:
+  - push
+  - pull_request
 
 jobs:
   test:
@@ -9,11 +11,11 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: ["ubuntu-latest", "macos-latest"]
-        python-version: ["3.8", "3.9", "3.10"]
+        os: ["ubuntu-latest"]
+        python-version: ["3.10", "3.11", "3.12"]
         experimental: [false]
         include:
-          - python-version: "3.9"
+          - python-version: "3.12"
             os: "ubuntu-latest"
             experimental: true
 
@@ -25,10 +27,10 @@ jobs:
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Setup Conda Environment
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
           miniconda-version: "latest"
           python-version: ${{ matrix.python-version }}
@@ -69,8 +71,25 @@ jobs:
           pytest --cov=cspp_runner cspp_runner/tests --cov-report=xml
 
       - name: Upload unittest coverage to Codecov
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v5
         with:
           flags: unittests
           file: ./coverage.xml
           env_vars: OS,PYTHON_VERSION,UNSTABLE
+          fail_ci_if_error: false
+
+      - name: Coveralls Parallel
+        uses: AndreMiras/coveralls-python-action@develop
+        with:
+          flag-name: run-${{ matrix.test_number }}
+          parallel: true
+        if: runner.os == 'Linux'
+
+  coveralls:
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Coveralls Finished
+        uses: AndreMiras/coveralls-python-action@develop
+        with:
+          parallel-finished: true
